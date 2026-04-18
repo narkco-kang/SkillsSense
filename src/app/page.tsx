@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
+import { useTheme } from "next-themes";
 
 type Skill = {
   id: string;
@@ -149,6 +150,11 @@ export default function Home() {
 
   const t: Translations = T[lang] as Translations;
   const EXAMPLES = [t.ex1, t.ex2, t.ex3, t.ex4, t.ex5, t.ex6];
+
+  // Theme
+  const { theme, setTheme, resolvedTheme } = useTheme();
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => setMounted(true), []);
 
   function resetStreamState() {
     setIntent(null);
@@ -321,12 +327,33 @@ export default function Home() {
             </div>
 
             <a
-              href="https://github.com/"
+              href="https://github.com/narkco-kang/SkillsSense"
               target="_blank"
               rel="noopener noreferrer"
               className="rounded-lg border border-zinc-200 px-3 py-1.5 text-xs font-medium text-zinc-600 transition hover:border-zinc-300 hover:text-zinc-900 dark:border-white/10 dark:text-zinc-400 dark:hover:text-zinc-50"
             >
               {t.github}
+            </a>
+
+            {/* Theme Toggle */}
+            {mounted && (
+              <button
+                onClick={() => setTheme(resolvedTheme === "dark" ? "light" : "dark")}
+                className="rounded-lg border border-zinc-200 px-3 py-1.5 text-xs font-medium text-zinc-600 transition hover:border-zinc-300 hover:text-zinc-900 dark:border-white/10 dark:text-zinc-400 dark:hover:text-zinc-50"
+                aria-label="Toggle theme"
+              >
+                {resolvedTheme === "dark" ? "☀️" : "🌙"}
+              </button>
+            )}
+
+            {/* Feedback */}
+            <a
+              href="https://github.com/narkco-kang/SkillsSense/issues/new"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="rounded-lg border border-zinc-200 px-3 py-1.5 text-xs font-medium text-zinc-600 transition hover:border-zinc-300 hover:text-zinc-900 dark:border-white/10 dark:text-zinc-400 dark:hover:text-zinc-50"
+            >
+              💬
             </a>
           </div>
         </div>
