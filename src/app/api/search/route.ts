@@ -475,8 +475,7 @@ async function handleStreaming(
           })),
         ];
 
-        // Stream each tutorial as it completes
-        const completedResults: Array<{ skill: Skill; score: number; source: string; sourceLabel: string; tutorial: string }> = [];
+        // Stream each tutorial as it completes (true streaming - send immediately when ready)
         await Promise.all(
           tutorialPromises.map(async (item) => {
             const tutorial = await item.promise;
@@ -487,7 +486,7 @@ async function handleStreaming(
               sourceLabel: item.sourceLabel,
               tutorial,
             };
-            completedResults.push(result);
+            // Send immediately when this tutorial is ready (not waiting for others)
             send("tutorial", result);
           })
         );

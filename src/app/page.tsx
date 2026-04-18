@@ -143,8 +143,8 @@ export default function Home() {
   const [statusMsg, setStatusMsg] = useState("");
   const [skillsmpFound, setSkillsmpFound] = useState(false);
   const [skillsmpUrl, setSkillsmpUrl] = useState<string | null>(null);
-  const [generatedSkill, setGeneratedSkill] = useState<ApiResponse["generatedSkill"]>(null as any);
-  const [guidance, setGuidance] = useState<ApiResponse["guidance"]>(null as any);
+  const [generatedSkill, setGeneratedSkill] = useState<ApiResponse["generatedSkill"]>(undefined as any);
+  const [guidance, setGuidance] = useState<ApiResponse["guidance"]>(undefined as any);
   const [done, setDone] = useState(false);
 
   const t: Translations = T[lang] as Translations;
@@ -169,6 +169,14 @@ export default function Home() {
     setData(null);
     resetStreamState();
 
+    // Use refs to capture live values from the stream (avoid closure stale-state bug)
+    const liveIntent = { current: undefined as ApiResponse["intent"] };
+    const liveResults = { current: [] as Result[] };
+    const liveSkillsmpFound = { current: false };
+    const liveSkillsmpUrl = { current: null as string | null };
+    const liveGenerated = { current: undefined as ApiResponse["generatedSkill"] };
+    const liveGuidance = { current: undefined as ApiResponse["guidance"] };
+
     try {
       const res = await fetch("/api/search", {
         method: "POST",
@@ -191,10 +199,7 @@ export default function Home() {
         buffer = lines.pop() || "";
 
         for (const line of lines) {
-          if (line.startsWith("event: ")) {
-            const event = line.slice(7);
-            continue;
-          }
+          if (line.startsWith("event: ")) continue;
           if (line.startsWith("data: ")) {
             const data = line.slice(6);
             try {
@@ -205,27 +210,30 @@ export default function Home() {
               }
               // Handle intent
               else if (payload.summary && payload.keywords) {
+                liveIntent.current = payload;
                 setIntent(payload);
               }
               // Handle sources
               else if (payload.skillsmpFound !== undefined) {
+                liveSkillsmpFound.current = payload.skillsmpFound;
+                liveSkillsmpUrl.current = payload.skillsmpUrl || null;
                 setSkillsmpFound(payload.skillsmpFound);
                 setSkillsmpUrl(payload.skillsmpUrl || null);
               }
               // Handle tutorial result
               else if (payload.skill && payload.tutorial !== undefined) {
-                setStreamingResults((prev) => {
-                  const exists = prev.some((r) => r.skill.id === payload.skill.id);
-                  if (exists) return prev;
-                  return [...prev, payload];
-                });
+                const tutorialResult = payload as Result;
+                liveResults.current = [...liveResults.current, tutorialResult];
+                setStreamingResults(liveResults.current);
               }
               // Handle generated skill
               else if (payload.name && payload.description && !payload.skill) {
+                liveGenerated.current = payload;
                 setGeneratedSkill(payload);
               }
               // Handle guidance
               else if (Array.isArray(payload)) {
+                liveGuidance.current = payload;
                 setGuidance(payload);
               }
               // Handle done
@@ -237,15 +245,15 @@ export default function Home() {
         }
       }
 
-      // Build final data for non-streaming fallback compatibility
+      // Build final data using the LIVE values captured during stream
       setData({
         query: text,
-        intent,
-        results: streamingResults,
-        skillsmpFound,
-        skillsmpUrl,
-        generatedSkill,
-        guidance,
+        intent: liveIntent.current,
+        results: liveResults.current,
+        skillsmpFound: liveSkillsmpFound.current,
+        skillsmpUrl: liveSkillsmpUrl.current,
+        generatedSkill: liveGenerated.current,
+        guidance: liveGuidance.current,
         language: lang as "en" | "zh",
       } as ApiResponse);
     } catch (err) {

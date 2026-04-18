@@ -72,6 +72,11 @@ export const metadata: Metadata = {
   alternates: {
     canonical: "https://skillssense.com",
   },
+  icons: {
+    icon: "/favicon.ico",
+    shortcut: "/favicon.ico",
+    apple: "/apple-touch-icon.png",
+  },
 };
 
 export default function RootLayout({
