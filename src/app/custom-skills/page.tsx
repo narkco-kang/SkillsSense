@@ -49,6 +49,9 @@ const T = {
     adDesc: "Watch an ad to unlock your next download",
     subscribeLabel: "Subscribe",
     subscribeDesc: "$3/month · Unlimited downloads",
+    subscribedBadge: "Pro Member · Unlimited Downloads",
+    backToHome: "Back to Home",
+    emailPlaceholder: "Enter email (for membership tracking)",
     footer: "SkillsSense · Connect everyone with the right AI tools",
     github: "GitHub ↗",
     stepLabels: ["Describe", "Context", "Level", "Download"],
@@ -97,6 +100,9 @@ const T = {
     adDesc: "看廣告解鎖下次下載",
     subscribeLabel: "訂閱",
     subscribeDesc: "$3/月 · 無限次下載",
+    subscribedBadge: "Pro 會員 · 無限下載",
+    backToHome: "回到首頁",
+    emailPlaceholder: "輸入 Email（可追蹤會員狀態）",
     footer: "SkillsSense · 用 AI 連接每個人和最適合他的工具",
     github: "GitHub ↗",
     stepLabels: ["描述需求", "選擇場景", "選擇程度", "下載"],
@@ -125,7 +131,7 @@ type GeneratedResult = {
 type DownloadStatus = "free" | "ad-required" | "subscribed" | "generating" | "ready" | "error";
 
 export default function CustomSkillsPage() {
-  const [lang, setLang] = useState<Lang>("zh");
+  const [lang, setLang] = useState<Lang>("en");
   const [step, setStep] = useState<Step>(1);
   const [goal, setGoal] = useState("");
   const [scenario, setScenario] = useState("");
@@ -242,6 +248,7 @@ export default function CustomSkillsPage() {
 
       // Open offerwall
       const offerwallUrl = new URL("/api/offerwall/show", window.location.origin);
+      offerwallUrl.searchParams.set("lang", lang);
       window.open(offerwallUrl.toString(), "_blank", "width=800,height=600");
       return;
     }
@@ -502,7 +509,7 @@ export default function CustomSkillsPage() {
                     type="email"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
-                    placeholder={lang === "zh" ? "輸入 Email（可追蹤會員狀態）" : "Enter email (for membership tracking)"}
+                    placeholder={t.emailPlaceholder}
                     className="w-full rounded-xl border border-zinc-200 bg-zinc-50 px-4 py-2.5 text-sm text-zinc-900 transition focus:border-indigo-400 focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-100 dark:border-white/10 dark:bg-zinc-800 dark:text-zinc-50 dark:focus:border-indigo-500"
                   />
                 </div>
@@ -522,7 +529,7 @@ export default function CustomSkillsPage() {
                 {downloadStatus === "subscribed" && (
                   <div className="flex items-center gap-2 rounded-xl border border-indigo-200 bg-indigo-50 px-4 py-2 text-xs text-indigo-700 dark:border-indigo-500/30 dark:bg-indigo-500/10 dark:text-indigo-300">
                     <span>✨</span>
-                    <span>Pro 會員 · 無限下載</span>
+                    <span>{t.subscribedBadge}</span>
                   </div>
                 )}
                 {downloadStatus === "generating" && (
@@ -615,7 +622,7 @@ export default function CustomSkillsPage() {
             href="/"
             className="text-xs text-zinc-400 transition hover:text-indigo-600 dark:hover:text-indigo-400"
           >
-            ← {lang === "zh" ? "回到首頁" : "Back to Home"}
+            ← {t.backToHome}
           </Link>
         </div>
       </main>
