@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef } from "react";
 import { useTheme } from "next-themes";
+import FeedbackModal from "@/components/feedback-modal";
 
 // GA4 tracking helper — safe to call even if gtag isn't loaded yet
 function trackEvent(action: string, params: Record<string, unknown> = {}) {
@@ -156,6 +157,7 @@ export default function Home() {
   const [generatedSkill, setGeneratedSkill] = useState<ApiResponse["generatedSkill"]>(undefined as any);
   const [guidance, setGuidance] = useState<ApiResponse["guidance"]>(undefined as any);
   const [done, setDone] = useState(false);
+  const [showFeedback, setShowFeedback] = useState(false);
 
   const t: Translations = T[lang] as Translations;
   const EXAMPLES = [t.ex1, t.ex2, t.ex3, t.ex4, t.ex5, t.ex6];
@@ -366,14 +368,12 @@ export default function Home() {
             )}
 
             {/* Feedback */}
-            <a
-              href="https://github.com/narkco-kang/SkillsSense/issues/new"
-              target="_blank"
-              rel="noopener noreferrer"
+            <button
+              onClick={() => setShowFeedback(true)}
               className="rounded-lg border border-zinc-200 px-3 py-1.5 text-xs font-medium text-zinc-600 transition hover:border-zinc-300 hover:text-zinc-900 dark:border-white/10 dark:text-zinc-400 dark:hover:text-zinc-50"
             >
               💬
-            </a>
+            </button>
           </div>
         </div>
       </header>
@@ -631,6 +631,8 @@ export default function Home() {
       <footer className="relative z-10 border-t border-black/5 py-6 text-center text-xs text-zinc-500 dark:border-white/10">
         {t.footer}
       </footer>
+
+      {showFeedback && <FeedbackModal onClose={() => setShowFeedback(false)} />}
     </div>
   );
 }
