@@ -376,16 +376,21 @@ async function handleStreaming(
         controller.enqueue(encoder.encode(sseEvent(event, data)));
       };
 
+      const statusMsg = {
+        en: { intent: "Analyzing your request...", search: "Searching multiple sources...", noMatch: "No match found, generating..." },
+        zh: { intent: "解析需求中...", search: "搜索多個來源...", noMatch: "找不到匹配，正在生成..." },
+      }[detectedLang];
+
       try {
         // Step 1: Parse intent immediately
-        send("status", { step: "intent", message: "解析需求中..." });
+        send("status", { step: "intent", message: statusMsg.intent });
         const intent = await parseIntent(router, query, detectedLang);
         send("intent", intent);
 
         const allSkills = getAllSkills();
 
         // Step 2: Parallel search
-        send("status", { step: "search", message: "搜索多個來源..." });
+        send("status", { step: "search", message: statusMsg.search });
         const skillsmpResult = isSkillsmpEnabled()
           ? await searchSkillsmp(query).catch(() => ({ found: false, url: null }))
           : { found: false, url: null };
@@ -425,7 +430,7 @@ async function handleStreaming(
 
         // Step 3: Handle no-results case
         if (!hasLocalResults && !hasExternalResults) {
-          send("status", { step: "generating", message: "找不到匹配，正在生成..." });
+          send("status", { step: "generating", message: statusMsg.noMatch });
           const similarSkills = findSimilarSkills(allSkills, intent, 3);
           if (similarSkills.length > 0) {
             try {

@@ -472,7 +472,9 @@ export default function Home() {
               </div>
               {streamingResults.length > 0 && (
                 <div className="text-xs text-zinc-500">
-                  已找到 {streamingResults.length} 個技能，正在生成教程...
+                  {lang === "zh"
+                    ? `已找到 ${streamingResults.length} 個技能，正在生成教程...`
+                    : `Found ${streamingResults.length} skills, generating tutorials...`}
                 </div>
               )}
             </div>
