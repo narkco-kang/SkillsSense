@@ -20,6 +20,7 @@ import { searchSkillsmp, isSkillsmpEnabled } from "@/lib/skillsmp";
 import { findSimilarSkills, generateNewSkill, saveGeneratedSkill, loadGeneratedSkills } from "@/lib/skill-generator";
 import { generateGuidance, type GuidanceStep } from "@/lib/guidance";
 import { searchAllSources, isSourceEnabled, type SourceResult } from "@/lib/sources";
+import { generateTutorial } from "@/lib/tutorial-generator";
 
 export const runtime = "nodejs";
 export const maxDuration = 90;
@@ -119,44 +120,6 @@ function scoreSkill(skill: Skill, intent: Intent): number {
     if (w.length >= 4 && hay.includes(w)) score += 0.25;
   }
   return score;
-}
-
-async function generateTutorial(
-  client: OpenAI,
-  query: string,
-  skill: Skill,
-  lang: "en" | "zh",
-): Promise<string> {
-  const langInstruction = lang === "zh"
-    ? "你必須用繁體中文回覆。"
-    : "You must respond in English.";
-  const sys = `You write short, vivid tutorials that teach a user how to apply a skill to their specific need.
-Format: markdown. 4-6 sections max. Each section ONE short paragraph or 2-3 bullets.
-${langInstruction}
-Include: (1) why this skill fits their need, (2) quick-start steps, (3) one concrete example, (4) a pitfall to avoid.
-Be concrete and warm. No fluff. No meta commentary.`;
-
-  const user = `User need: "${query}"
-
-Skill: ${skill.name}
-Category: ${skill.category}
-Description: ${skill.description}
-When to use: ${skill.whenToUse}
-Tags: ${skill.tags.join(", ")}
-Reference link: ${skill.url}
-
-Write the tutorial now.`;
-
-  const res = await client.chat.completions.create({
-    model: TUTORIAL_MODEL,
-    messages: [
-      { role: "system", content: sys },
-      { role: "user", content: user },
-    ],
-    temperature: 0.7,
-    max_tokens: 600,
-  });
-  return res.choices[0]?.message?.content?.trim() || "";
 }
 
 type PickedSkill = { skill: Skill; score: number; source: "local" | "huggingface" | "github-topic" | "awesome-list" };

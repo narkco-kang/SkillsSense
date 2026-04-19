@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef } from "react";
 import { useTheme } from "next-themes";
+import Link from "next/link";
 import FeedbackModal from "@/components/feedback-modal";
 
 // GA4 tracking helper — safe to call even if gtag isn't loaded yet
@@ -374,6 +375,15 @@ export default function Home() {
             >
               💬
             </button>
+
+            {/* Custom Skill CTA */}
+            <Link
+              href="/custom-skills"
+              className="rounded-lg border border-fuchsia-200 bg-fuchsia-50 px-3 py-1.5 text-xs font-medium text-fuchsia-600 transition hover:border-fuchsia-300 hover:bg-fuchsia-100 dark:border-fuchsia-500/30 dark:bg-fuchsia-500/10 dark:text-fuchsia-400 dark:hover:bg-fuchsia-500/20"
+              title={lang === "zh" ? "讓 AI 為你量身打造一個 Skill" : "Let AI build a custom Skill for you"}
+            >
+              🎯 {lang === "zh" ? "定制 Skill" : "Custom"}
+            </Link>
           </div>
         </div>
       </header>
@@ -440,6 +450,56 @@ export default function Home() {
               </div>
             </div>
           </form>
+
+          {/* Hero CTA Card */}
+          <div className="mt-10 w-full">
+            <div className="relative overflow-hidden rounded-2xl border border-fuchsia-200/50 bg-gradient-to-br from-fuchsia-50 via-white to-indigo-50 p-6 text-left shadow-lg shadow-fuchsia-500/10 dark:border-fuchsia-500/30 dark:from-fuchsia-500/10 dark:via-zinc-900 dark:to-indigo-500/10">
+              <div className="absolute -right-8 -top-8 h-24 w-24 rounded-full bg-gradient-to-br from-fuchsia-400/20 to-indigo-400/20 blur-2xl" />
+              <div className="absolute -bottom-6 -left-6 h-20 w-20 rounded-full bg-indigo-400/20 blur-2xl" />
+              <div className="relative">
+                <div className="flex items-center gap-2">
+                  <span className="text-xl">🎯</span>
+                  <span className="text-sm font-semibold text-fuchsia-700 dark:text-fuchsia-300">
+                    {lang === "zh" ? "定制你的專屬 Skill" : "Build Your Custom Skill"}
+                  </span>
+                  <span className="rounded-full bg-fuchsia-100 px-2 py-0.5 text-[10px] font-medium text-fuchsia-600 dark:bg-fuchsia-500/20 dark:text-fuchsia-400">
+                    {lang === "zh" ? "新功能" : "NEW"}
+                  </span>
+                </div>
+                <p className="mt-2 text-sm text-zinc-600 dark:text-zinc-400">
+                  {lang === "zh"
+                    ? "告訴 AI 你的需求，生成完整技能包：標準文件 + 圖文教程 + 示例代碼，打包成 ZIP 下載。"
+                    : "Tell AI your goal, get a complete skill package — SKILL.md, tutorial, examples & templates. Download as ZIP."}
+                </p>
+                <div className="mt-4 flex items-center gap-3">
+                  <Link
+                    href="/custom-skills"
+                    className="rounded-xl bg-gradient-to-r from-indigo-600 to-fuchsia-600 px-5 py-2 text-sm font-semibold text-white shadow-lg shadow-fuchsia-500/20 transition hover:shadow-xl hover:shadow-fuchsia-500/30 active:scale-[0.98]"
+                  >
+                    {lang === "zh" ? "免費定制一次 →" : "Try Free →"}
+                  </Link>
+                  <Link
+                    href="/custom-skills"
+                    className="rounded-xl border border-zinc-200 bg-white/80 px-4 py-2 text-sm font-medium text-zinc-600 backdrop-blur transition hover:border-zinc-300 dark:border-white/10 dark:bg-zinc-900/60 dark:text-zinc-400"
+                  >
+                    {lang === "zh" ? "查看方案" : "See pricing"}
+                  </Link>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Search link hint */}
+          <div className="mt-4">
+            <Link
+              href="/custom-skills"
+              className="text-xs text-zinc-400 transition hover:text-indigo-600 dark:hover:text-indigo-400"
+            >
+              {lang === "zh"
+                ? "或試試 AI 定製生成器 →"
+                : "or try the AI custom generator →"}
+            </Link>
+          </div>
 
           {!data && !loading && (
             <div className="mt-8 flex flex-wrap items-center justify-center gap-2">
