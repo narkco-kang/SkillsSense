@@ -94,7 +94,7 @@ export default function RootLayout({
     >
       <body className="min-h-full flex flex-col">
       <Script
-        src="https://www.googletagmanager.com/gtag/js?id=G-XXXXXXXXXX"
+        src={`https://www.googletagmanager.com/gtag/js?id=${process.env.NEXT_PUBLIC_GA4_MEASUREMENT_ID}`}
         strategy="lazyOnload"
       />
       <Script id="ga4-init" strategy="lazyOnload">
@@ -102,7 +102,7 @@ export default function RootLayout({
           window.dataLayer = window.dataLayer || [];
           function gtag(){dataLayer.push(arguments);}
           gtag('js', new Date());
-          gtag('config', 'G-XXXXXXXXXX');
+          gtag('config', '${process.env.NEXT_PUBLIC_GA4_MEASUREMENT_ID}');
         `}
       </Script>
       <ThemeProvider>{children}</ThemeProvider>

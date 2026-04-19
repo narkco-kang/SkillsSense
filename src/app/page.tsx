@@ -3,6 +3,15 @@
 import { useState, useEffect, useRef } from "react";
 import { useTheme } from "next-themes";
 
+// GA4 tracking helper — safe to call even if gtag isn't loaded yet
+function trackEvent(action: string, params: Record<string, unknown> = {}) {
+  if (typeof window === "undefined") return;
+  const win = window as typeof window & { gtag?: (...args: unknown[]) => void };
+  if (win.gtag) {
+    win.gtag("event", action, params);
+  }
+}
+
 type Skill = {
   id: string;
   name: string;
@@ -175,6 +184,8 @@ export default function Home() {
     setData(null);
     resetStreamState();
 
+    trackEvent("search_start", { query: text, language: lang });
+
     // Use refs to capture live values from the stream (avoid closure stale-state bug)
     const liveIntent = { current: undefined as ApiResponse["intent"] };
     const liveResults = { current: [] as Result[] };
@@ -267,9 +278,17 @@ export default function Home() {
         error: "Network error",
         message: err instanceof Error ? err.message : String(err),
       });
+      trackEvent("search_error", { error: err instanceof Error ? err.message : String(err) });
     } finally {
       setLoading(false);
       setDone(true);
+      if (data && !data.error) {
+        trackEvent("search_complete", {
+          query: text,
+          results_count: data.results?.length ?? 0,
+          has_generated: !!data.generatedSkill,
+        });
+      }
     }
   }
 
