@@ -86,7 +86,7 @@ Generate 2-4 guidance questions to help the user refine their search.`;
 
   try {
     const res = await openai.chat.completions.create({
-      model: process.env.OPENROUTER_MODEL || "anthropic/claude-haiku-4.5",
+      model: (process.env.OPENROUTER_MODEL || "anthropic/claude-haiku-4.5").trim(),
       messages: [
         { role: "system", content: systemPrompt },
         { role: "user", content: userPrompt },

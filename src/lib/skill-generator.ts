@@ -120,7 +120,7 @@ ${similarSkillsInfo}
 Generate a new skill that best solves this need. Respond with JSON only.`;
 
   const res = await openai.chat.completions.create({
-      model: process.env.OPENROUTER_MODEL || "anthropic/claude-haiku-4.5",
+      model: (process.env.OPENROUTER_MODEL || "anthropic/claude-haiku-4.5").trim(),
     messages: [
       { role: "system", content: systemPrompt },
       { role: "user", content: userPrompt },
