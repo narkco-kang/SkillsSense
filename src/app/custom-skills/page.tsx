@@ -120,8 +120,9 @@ type GeneratedResult = {
   generatedFrom: string[];
   tutorialPreview: string;
   fullTutorial: string;
-  downloadUrl: string;
-  files: string[];
+  downloadUrl?: string;
+  zipBase64?: string;
+  files?: string[];
 };
 
 type DownloadStatus = "free" | "subscribe-required" | "subscribed" | "generating" | "ready" | "error";
@@ -207,12 +208,21 @@ export default function CustomSkillsPage() {
   async function handleDownload() {
     if (!result) return;
 
-    // Build download URL with optional email
+    // If we have zipBase64 from the generation response, use it directly
+    if ("zipBase64" in result && result.zipBase64) {
+      const link = document.createElement("a");
+      link.href = `data:application/zip;base64,${result.zipBase64}`;
+      link.download = `${result.slug}.zip`;
+      link.click();
+      setDownloadStatus("subscribe-required");
+      return;
+    }
+
+    // Fallback: use the download endpoint
     const downloadUrl = new URL(`/api/custom-skills/download/${result.slug}`, window.location.origin);
     if (email) downloadUrl.searchParams.set("email", email);
 
     if (downloadStatus === "free") {
-      // First download — use free credit
       try {
         const res = await fetch(downloadUrl.toString());
         if (res.status === 200) {
@@ -226,22 +236,19 @@ export default function CustomSkillsPage() {
           return;
         }
       } catch {
-        // Fall through to direct download
+        // Fall through
       }
-      // Fallback: direct download
       window.open(downloadUrl.toString(), "_blank");
       setDownloadStatus("subscribe-required");
       return;
     }
 
     if (downloadStatus === "subscribe-required") {
-      // Check if subscribed before prompting
       if (email && (await checkSubscriptionStatus())) {
         setDownloadStatus("subscribed");
         handleDownload();
         return;
       }
-      // Prompt user to subscribe
       return;
     }
 

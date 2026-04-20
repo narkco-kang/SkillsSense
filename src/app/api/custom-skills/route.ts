@@ -1,14 +1,12 @@
 /**
  * POST /api/custom-skills
- * Generate a custom skill and return a ZIP download URL
+ * Generate a custom skill and return a ZIP as base64
  *
  * Body: { goal, scenario, proficiency, email? }
  */
 
 import { NextRequest, NextResponse } from "next/server";
 import OpenAI from "openai";
-import path from "path";
-import fs from "fs/promises";
 import { generateNewSkill } from "@/lib/skill-generator";
 import { generateTutorial } from "@/lib/tutorial-generator";
 import { packageSkill } from "@/lib/zip-packager";
@@ -20,8 +18,6 @@ const openai = new OpenAI({
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
-
-const DOWNLOADS_DIR = path.join(process.cwd(), "public", "downloads");
 
 /**
  * Parse intent from user goal for custom skill generation
@@ -74,11 +70,10 @@ Analyze this request and return JSON.`;
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
-    const { goal, scenario, proficiency, email } = body as {
+    const { goal, scenario, proficiency } = body as {
       goal: string;
       scenario: string;
       proficiency: string;
-      email?: string;
     };
 
     if (!goal || typeof goal !== "string" || goal.trim().length < 5) {
@@ -116,36 +111,9 @@ export async function POST(req: NextRequest) {
 
     const skillWithTutorial = { ...generated, tutorial };
 
-    // 5. Package into ZIP
+    // 5. Package into ZIP (in-memory, no disk write)
     const { zip, slug, files } = await packageSkill(skillWithTutorial);
-
-    // 6. Save ZIP to public/downloads/
-    await fs.mkdir(DOWNLOADS_DIR, { recursive: true });
-    const zipFilename = `${slug}-${Date.now()}.zip`;
-    const zipPath = path.join(DOWNLOADS_DIR, zipFilename);
-    await fs.writeFile(zipPath, zip);
-
-    const downloadUrl = `/downloads/${zipFilename}`;
-
-    // 7. Save skill metadata for record
-    const metaPath = path.join(process.cwd(), "data", "custom-skills-meta.json");
-    let meta: Record<string, unknown>[] = [];
-    try {
-      meta = JSON.parse(await fs.readFile(metaPath, "utf-8"));
-    } catch {
-      // File doesn't exist yet
-    }
-    meta.push({
-      slug,
-      goal,
-      scenario,
-      proficiency,
-      email: email || null,
-      downloadedAt: new Date().toISOString(),
-      downloadUrl,
-    });
-    await fs.mkdir(path.dirname(metaPath), { recursive: true });
-    await fs.writeFile(metaPath, JSON.stringify(meta, null, 2));
+    const zipBase64 = zip.toString("base64");
 
     return NextResponse.json({
       success: true,
@@ -157,27 +125,18 @@ export async function POST(req: NextRequest) {
         description: generated.description,
         whenToUse: generated.whenToUse,
         generatedFrom: generated.generatedFrom,
-        tutorial: tutorial.slice(0, 500) + (tutorial.length > 500 ? "..." : ""),
         tutorialPreview: tutorial.slice(0, 500),
         fullTutorial: tutorial,
       },
-      downloadUrl,
+      zipBase64,
       files,
       expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(), // 24h
     });
   } catch (err) {
     console.error("[custom-skills] Generation error:", err);
     const msg = err instanceof Error ? err.message : String(err);
-    // Mirror what OpenAI throws so we can distinguish auth vs model errors
-    if (msg.includes("401") || msg.includes("Unauthorized") || msg.includes("API key")) {
-      console.error("[custom-skills] OPENROUTER_API_KEY env:", process.env.OPENROUTER_API_KEY ? "SET (" + process.env.OPENROUTER_API_KEY.slice(0, 8) + "...)" : "UNDEFINED");
-    }
-    console.error("[custom-skills] OPENROUTER_MODEL env:", process.env.OPENROUTER_MODEL);
     return NextResponse.json(
-      {
-        error: "generation_failed",
-        message: msg,
-      },
+      { error: "generation_failed", message: msg },
       { status: 500 }
     );
   }
