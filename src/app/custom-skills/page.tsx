@@ -194,7 +194,7 @@ export default function CustomSkillsPage() {
         throw new Error(data.message || "Generation failed");
       }
 
-      setResult(data);
+      setResult({ ...data.skill, zipBase64: data.zipBase64, files: data.files });
       setDownloadStatus(isSubscribed ? "subscribed" : "free");
       setStep(4);
     } catch (err) {
