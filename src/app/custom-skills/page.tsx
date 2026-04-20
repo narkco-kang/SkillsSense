@@ -463,8 +463,8 @@ export default function CustomSkillsPage() {
                   </div>
                 </div>
                 <div className="p-5">
-                  <h3 className="text-lg font-semibold text-fuchsia-900 dark:text-fuchsia-100">{result.name}</h3>
-                  <p className="mt-2 text-sm text-fuchsia-700 dark:text-fuchsia-300">{result.description}</p>
+                  <h3 className="text-lg font-semibold text-fuchsia-900 dark:text-fuchsia-100">{result.name || "Custom Skill"}</h3>
+                  <p className="mt-2 text-sm text-fuchsia-700 dark:text-fuchsia-300">{result.description || ""}</p>
                   <div className="mt-3 flex flex-wrap gap-1.5">
                     {(result.tags || []).map((tag) => (
                       <span
@@ -492,8 +492,8 @@ export default function CustomSkillsPage() {
                 </div>
                 <div className="max-h-48 overflow-y-auto p-5">
                   <div className="prose prose-sm prose-zinc dark:prose-invert max-w-none text-sm">
-                    {result.fullTutorial.split("\n").slice(0, 20).join("\n")}
-                    {result.fullTutorial.split("\n").length > 20 && (
+                    {(result.fullTutorial || "").split("\n").slice(0, 20).join("\n")}
+                    {(result.fullTutorial || "").split("\n").length > 20 && (
                       <span className="text-zinc-400">...</span>
                     )}
                   </div>
