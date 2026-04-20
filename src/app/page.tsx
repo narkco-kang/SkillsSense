@@ -6,6 +6,7 @@ import Link from "next/link";
 import FeedbackModal from "@/components/feedback-modal";
 
 // GA4 tracking helper — safe to call even if gtag isn't loaded yet
+// Updated: 2026-04-20 - Stripe integration active
 function trackEvent(action: string, params: Record<string, unknown> = {}) {
   if (typeof window === "undefined") return;
   const win = window as typeof window & { gtag?: (...args: unknown[]) => void };
