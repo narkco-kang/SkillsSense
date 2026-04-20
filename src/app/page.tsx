@@ -146,7 +146,7 @@ function LiveBadge({ lang }: { lang: Lang }) {
 type Translations = typeof T.zh;
 
 export default function Home() {
-  const [lang, setLang] = useState<Lang>("zh");
+  const [lang, setLang] = useState<Lang>("en");
   const [query, setQuery] = useState("");
   const [loading, setLoading] = useState(false);
   const [data, setData] = useState<ApiResponse | null>(null);
