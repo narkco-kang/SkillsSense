@@ -73,6 +73,10 @@ async function serveZip(slug: string, skillData: GeneratedSkill | null, email: s
     whenToUse: "Custom skill package",
     tutorial: "# Skill Tutorial\n\nThis is your custom skill tutorial.",
     generatedFrom: [],
+    prerequisites: [],
+    whatYouWillLearn: [],
+    difficulty: "intermediate",
+    estimatedTime: "1 hour",
   };
 
   const { zip } = await packageSkill(skill);
