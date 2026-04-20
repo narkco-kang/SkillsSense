@@ -30,7 +30,7 @@ const LABELS = {
 };
 
 export default function FeedbackModal({ onClose }: FeedbackModalProps) {
-  const [lang, setLang] = useState<"en" | "zh">("zh");
+  const [lang, setLang] = useState<"en" | "zh">("en");
   const [rating, setRating] = useState(0);
   const [hover, setHover] = useState(0);
   const [text, setText] = useState("");
