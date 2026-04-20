@@ -83,31 +83,37 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // 1. Parse intent
-    const intent = await parseCustomIntent(openai, goal.trim(), scenario || "other", proficiency || "intermediate");
-
-    // 2. Load local skills for reference
+    // 1. Load local skills for reference (instant, no I/O)
     const { getAllSkills } = await import("@/lib/skills-data");
     const allSkills = getAllSkills();
-
     const { findSimilarSkills } = await import("@/lib/skill-generator");
+
+    // 2. Run intent parsing + tutorial generation IN PARALLEL
+    //    (both only need goal/scenario/proficiency, not each other's output)
+    const [intent, tutorial] = await Promise.all([
+      parseCustomIntent(openai, goal.trim(), scenario || "other", proficiency || "intermediate"),
+      // Tutorial needs only userQuery, skill metadata, and lang — not the skill itself
+      generateTutorial(
+        openai,
+        goal.trim(),
+        {
+          id: "temp",
+          name: goal.trim(),
+          category: "other",
+          description: goal.trim(),
+          whenToUse: goal.trim(),
+          tags: [],
+          url: "",
+        },
+        "en"
+      ),
+    ]);
+
+    // 3. Find similar skills (instant computation)
     const similarSkills = findSimilarSkills(allSkills, intent, 3);
 
-    // 3. Generate new skill
+    // 4. Generate new skill (needs similarSkills for prompt context)
     const generated = await generateNewSkill(openai, goal, intent, similarSkills);
-
-    // 4. Generate tutorial
-    const tutorial = await generateTutorial(
-      openai,
-      goal,
-      {
-        ...generated,
-        id: generated.name.toLowerCase().replace(/\s+/g, "-"),
-        source: "generated",
-        url: "",
-      },
-      "en"
-    );
 
     const skillWithTutorial = { ...generated, tutorial };
 
