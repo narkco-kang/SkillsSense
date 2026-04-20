@@ -167,10 +167,16 @@ export async function POST(req: NextRequest) {
     });
   } catch (err) {
     console.error("[custom-skills] Generation error:", err);
+    const msg = err instanceof Error ? err.message : String(err);
+    // Mirror what OpenAI throws so we can distinguish auth vs model errors
+    if (msg.includes("401") || msg.includes("Unauthorized") || msg.includes("API key")) {
+      console.error("[custom-skills] OPENROUTER_API_KEY env:", process.env.OPENROUTER_API_KEY ? "SET (" + process.env.OPENROUTER_API_KEY.slice(0, 8) + "...)" : "UNDEFINED");
+    }
+    console.error("[custom-skills] OPENROUTER_MODEL env:", process.env.OPENROUTER_MODEL);
     return NextResponse.json(
       {
         error: "generation_failed",
-        message: err instanceof Error ? err.message : "Unknown error",
+        message: msg,
       },
       { status: 500 }
     );
