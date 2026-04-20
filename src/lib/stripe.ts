@@ -44,6 +44,9 @@ export async function createStripeCheckoutSession(params: {
   const sessionParams: Stripe.Checkout.SessionCreateParams = {
     mode: "subscription",
     payment_method_types: ["card"],
+    managed_payments: {
+      enabled: true,
+    },
     line_items: [
       {
         price: priceId,
