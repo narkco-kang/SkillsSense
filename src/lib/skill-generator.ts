@@ -133,8 +133,10 @@ Generate a new skill that best solves this need. Respond with JSON only.`;
   const raw = res.choices[0]?.message?.content ?? "{}";
   let parsed: Partial<GeneratedSkill>;
 
+  // Strip markdown code fences if the model wrapped JSON in ```json ... ```
+  const stripped = raw.replace(/^```json\s*/i, "").replace(/\s*```$/i, "").trim();
   try {
-    parsed = JSON.parse(raw);
+    parsed = JSON.parse(stripped);
   } catch {
     throw new Error(`Failed to parse generated skill: ${raw}`);
   }
