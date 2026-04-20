@@ -12,14 +12,18 @@
 
 import Stripe from "stripe";
 
-if (!process.env.STRIPE_SECRET_KEY) {
-  throw new Error("STRIPE_SECRET_KEY is not configured");
-}
+// Lazy singleton — initialized once at runtime, not at build time
+let _stripe: Stripe | null = null;
 
-export const stripe = new Stripe(process.env.STRIPE_SECRET_KEY, {
-  apiVersion: "2026-03-25.dahlia",
-  typescript: true,
-});
+export function getStripe(): Stripe {
+  if (!_stripe) {
+    _stripe = new Stripe(process.env.STRIPE_SECRET_KEY || "sk_placeholder", {
+      apiVersion: "2026-03-25.dahlia",
+      typescript: true,
+    });
+  }
+  return _stripe;
+}
 
 export type StripeCheckoutResult = {
   checkoutUrl: string;
@@ -60,7 +64,7 @@ export async function createStripeCheckoutSession(params: {
     (sessionParams as Stripe.Checkout.SessionCreateParams & { customer_email?: string }).customer_email = email;
   }
 
-  const session = await stripe.checkout.sessions.create(sessionParams);
+  const session = await getStripe().checkout.sessions.create(sessionParams);
 
   if (!session.url) {
     throw new Error("No checkout URL returned from Stripe");
@@ -113,5 +117,5 @@ export function verifyStripeWebhookSignature(
  * Retrieve a subscription by ID.
  */
 export async function getStripeSubscription(subscriptionId: string) {
-  return stripe.subscriptions.retrieve(subscriptionId);
+  return getStripe().subscriptions.retrieve(subscriptionId);
 }

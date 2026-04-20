@@ -18,7 +18,7 @@
  */
 
 import { NextRequest, NextResponse } from "next/server";
-import { stripe, verifyStripeWebhookSignature } from "@/lib/stripe";
+import { verifyStripeWebhookSignature, getStripe } from "@/lib/stripe";
 import { upsertMembership } from "@/lib/membership";
 import Stripe from "stripe";
 
@@ -33,7 +33,7 @@ function extractEmailFromSession(session: Stripe.Checkout.Session): string | nul
 async function extractEmailFromSubscription(sub: Stripe.Subscription): Promise<string | null> {
   // Retrieve customer to get email
   try {
-    const customer = await stripe.customers.retrieve(String(sub.customer), {
+    const customer = await getStripe().customers.retrieve(String(sub.customer), {
       expand: ["email"],
     }) as Stripe.Customer;
     return customer.email || null;
@@ -55,7 +55,7 @@ export async function POST(req: NextRequest) {
       console.warn("[stripe/webhook] No signature or secret — parsing without verification");
       event = JSON.parse(rawBody) as Stripe.Event;
     } else {
-      event = stripe.webhooks.constructEvent(rawBody, signature, secret);
+      event = getStripe().webhooks.constructEvent(rawBody, signature, secret);
     }
   } catch (err) {
     console.error("[stripe/webhook] Signature verification failed:", err);
@@ -78,7 +78,7 @@ export async function POST(req: NextRequest) {
         // Retrieve full subscription to get current period end
         if (session.subscription && typeof session.subscription === "string") {
           // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          const sub = await stripe.subscriptions.retrieve(session.subscription) as any;
+          const sub = await getStripe().subscriptions.retrieve(session.subscription) as any;
           const expiresAt = new Date(sub.current_period_end * 1000).toISOString();
           await upsertMembership(email, "monthly", expiresAt);
           console.log(`[stripe/webhook] Activated subscription for ${email}, expires ${expiresAt}`);
