@@ -45,8 +45,6 @@ const T = {
     tutorialPreview: "Tutorial Preview",
     freeLabel: "FREE",
     freeDesc: "You have 1 free generation + download",
-    adLabel: "Watch Ad",
-    adDesc: "Watch an ad to unlock your next download",
     subscribeLabel: "Subscribe",
     subscribeDesc: "$3/month · Unlimited downloads",
     subscribedBadge: "Pro Member · Unlimited Downloads",
@@ -96,9 +94,7 @@ const T = {
     tutorialPreview: "教程預覽",
     freeLabel: "免費",
     freeDesc: "你有 1 次免費生成 + 下載機會",
-    adLabel: "看廣告",
-    adDesc: "看廣告解鎖下次下載",
-    subscribeLabel: "訂閱",
+    subscribeLabel: "訂閱下載",
     subscribeDesc: "$3/月 · 無限次下載",
     subscribedBadge: "Pro 會員 · 無限下載",
     backToHome: "回到首頁",
@@ -128,7 +124,7 @@ type GeneratedResult = {
   files: string[];
 };
 
-type DownloadStatus = "free" | "ad-required" | "subscribed" | "generating" | "ready" | "error";
+type DownloadStatus = "free" | "subscribe-required" | "subscribed" | "generating" | "ready" | "error";
 
 export default function CustomSkillsPage() {
   const [lang, setLang] = useState<Lang>("en");
@@ -226,7 +222,7 @@ export default function CustomSkillsPage() {
           link.download = `${result.slug}.zip`;
           link.click();
           URL.revokeObjectURL(link.href);
-          setDownloadStatus("ad-required");
+          setDownloadStatus("subscribe-required");
           return;
         }
       } catch {
@@ -234,22 +230,18 @@ export default function CustomSkillsPage() {
       }
       // Fallback: direct download
       window.open(downloadUrl.toString(), "_blank");
-      setDownloadStatus("ad-required");
+      setDownloadStatus("subscribe-required");
       return;
     }
 
-    if (downloadStatus === "ad-required") {
-      // Check if subscribed before showing offerwall
+    if (downloadStatus === "subscribe-required") {
+      // Check if subscribed before prompting
       if (email && (await checkSubscriptionStatus())) {
         setDownloadStatus("subscribed");
         handleDownload();
         return;
       }
-
-      // Open offerwall
-      const offerwallUrl = new URL("/api/offerwall/show", window.location.origin);
-      offerwallUrl.searchParams.set("lang", lang);
-      window.open(offerwallUrl.toString(), "_blank", "width=800,height=600");
+      // Prompt user to subscribe
       return;
     }
 
@@ -259,7 +251,7 @@ export default function CustomSkillsPage() {
   }
 
   async function handleSubscribe() {
-    const checkoutRes = await fetch("/api/lemon-squeezy/checkout", {
+    const checkoutRes = await fetch("/api/stripe/checkout", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ email }),
@@ -520,10 +512,10 @@ export default function CustomSkillsPage() {
                     <span>{t.freeDesc}</span>
                   </div>
                 )}
-                {downloadStatus === "ad-required" && (
+                {downloadStatus === "subscribe-required" && (
                   <div className="flex items-center gap-2 rounded-xl border border-amber-200 bg-amber-50 px-4 py-2 text-xs text-amber-700 dark:border-amber-500/30 dark:bg-amber-500/10 dark:text-amber-300">
-                    <span>👁</span>
-                    <span>{t.adDesc}</span>
+                    <span>🔓</span>
+                    <span>{lang === "zh" ? "免費次數已用盡，訂閱解鎖無限下載" : "Free download used. Subscribe for unlimited downloads."}</span>
                   </div>
                 )}
                 {downloadStatus === "subscribed" && (
@@ -547,14 +539,14 @@ export default function CustomSkillsPage() {
                   >
                     {downloadStatus === "free"
                       ? `🎁 ${t.downloadBtn} (${t.freeLabel})`
-                      : downloadStatus === "ad-required"
-                      ? `👁 ${t.adLabel}`
+                      : downloadStatus === "subscribe-required"
+                      ? `🔓 ${t.subscribeLabel}`
                       : downloadStatus === "subscribed"
                       ? `📦 ${t.downloadBtn}`
                       : t.downloadBtn}
                   </button>
                 )}
-                {downloadStatus === "ad-required" && (
+                {downloadStatus === "subscribe-required" && (
                   <div className="flex gap-2">
                     <button
                       onClick={handleSubscribe}

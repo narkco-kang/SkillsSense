@@ -161,7 +161,7 @@ export async function logDownload(
  */
 export type DownloadEligibility =
   | { allowed: true; reason: "free-available" | "subscribed"; downloadsLeft: number }
-  | { allowed: false; reason: "ad-required" | "rate-limited"; message: string };
+  | { allowed: false; reason: "subscribe-required" | "rate-limited"; message: string };
 
 export async function checkDownloadEligibility(
   email: string | null,
@@ -197,7 +197,7 @@ export async function checkDownloadEligibility(
   // Already used free download today
   return {
     allowed: false,
-    reason: "ad-required",
-    message: "Free daily download already used. Watch an ad or subscribe for unlimited downloads.",
+    reason: "subscribe-required",
+    message: "Free daily download already used. Subscribe for unlimited downloads.",
   };
 }

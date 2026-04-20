@@ -60,7 +60,7 @@ export async function GET(
       }
     }
 
-    // Check eligibility (free daily download or ad-required)
+    // Check eligibility (free daily download or subscribe-required)
     const eligibility = await checkDownloadEligibility(email, ip);
 
     if (!eligibility.allowed) {
@@ -68,7 +68,7 @@ export async function GET(
         {
           error: eligibility.reason,
           message: eligibility.message,
-          checkoutUrl: `/api/lemon-squeezy/checkout${email ? `?email=${encodeURIComponent(email)}` : ""}`,
+          checkoutUrl: `/api/stripe/checkout${email ? `?email=${encodeURIComponent(email)}` : ""}`,
         },
         { status: 403 }
       );
