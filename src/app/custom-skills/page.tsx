@@ -210,11 +210,27 @@ export default function CustomSkillsPage() {
 
     // If we have zipBase64 from the generation response, use it directly
     if ("zipBase64" in result && result.zipBase64) {
-      const link = document.createElement("a");
-      link.href = `data:application/zip;base64,${result.zipBase64}`;
-      link.download = `${result.slug}.zip`;
-      link.click();
-      setDownloadStatus("subscribe-required");
+      // Free download: allow once, then require subscription
+      if (downloadStatus === "free") {
+        const link = document.createElement("a");
+        // slug may not exist on result — derive from name
+        const slug = result.slug || result.name?.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "") || "skill";
+        link.href = `data:application/zip;base64,${result.zipBase64}`;
+        link.download = `${slug}.zip`;
+        link.click();
+        setDownloadStatus("subscribe-required");
+        return;
+      }
+      // Subscribed: always allow
+      if (downloadStatus === "subscribed") {
+        const slug = result.slug || result.name?.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "") || "skill";
+        const link = document.createElement("a");
+        link.href = `data:application/zip;base64,${result.zipBase64}`;
+        link.download = `${slug}.zip`;
+        link.click();
+        return;
+      }
+      // subscribe-required: prompt subscription
       return;
     }
 
@@ -258,14 +274,28 @@ export default function CustomSkillsPage() {
   }
 
   async function handleSubscribe() {
-    const checkoutRes = await fetch("/api/stripe/checkout", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ email }),
-    });
-    const { checkoutUrl } = await checkoutRes.json();
-    if (checkoutUrl) {
-      window.open(checkoutUrl, "_blank");
+    if (!email) {
+      setError(lang === "zh"
+        ? "請先輸入 Email 才能訂閱"
+        : "Please enter your email first to subscribe");
+      return;
+    }
+    setError(null);
+    try {
+      const checkoutRes = await fetch("/api/stripe/checkout", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email }),
+      });
+      const data = await checkoutRes.json();
+      if (!checkoutRes.ok) {
+        throw new Error(data.message || data.error || "Failed to create checkout session");
+      }
+      if (data.checkoutUrl) {
+        window.open(data.checkoutUrl, "_blank");
+      }
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Unknown error");
     }
   }
 
