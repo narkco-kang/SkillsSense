@@ -466,7 +466,7 @@ export default function CustomSkillsPage() {
                   <h3 className="text-lg font-semibold text-fuchsia-900 dark:text-fuchsia-100">{result.name}</h3>
                   <p className="mt-2 text-sm text-fuchsia-700 dark:text-fuchsia-300">{result.description}</p>
                   <div className="mt-3 flex flex-wrap gap-1.5">
-                    {result.tags.map((tag) => (
+                    {(result.tags || []).map((tag) => (
                       <span
                         key={tag}
                         className="rounded-md bg-fuchsia-100 px-2 py-0.5 text-xs font-medium text-fuchsia-700 dark:bg-fuchsia-500/20 dark:text-fuchsia-300"
@@ -475,9 +475,9 @@ export default function CustomSkillsPage() {
                       </span>
                     ))}
                   </div>
-                  {result.generatedFrom.length > 0 && (
+                  {(result.generatedFrom || []).length > 0 && (
                     <p className="mt-3 text-xs text-zinc-500">
-                      Based on: {result.generatedFrom.join(", ")}
+                      Based on: {(result.generatedFrom || []).join(", ")}
                     </p>
                   )}
                 </div>
