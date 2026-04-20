@@ -62,6 +62,11 @@ export default function TermsPage() {
             <p>如有疑問，請聯繫：<a href="mailto:support@skillssense.com" className="text-blue-600 hover:underline">support@skillssense.com</a></p>
           </section>
 
+          <section>
+            <h2 className="text-xl font-semibold text-slate-900 dark:text-white mb-3">8. 支付與退款</h2>
+            <p>所有支付透過 Stripe 安全處理。訂閱可隨時取消，取消後在當前計費週期結束前仍可使用服務。我們不提供退款，但您可以在任何時候取消訂閱。</p>
+          </section>
+
         </div>
       </div>
     </main>
